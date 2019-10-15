@@ -1,0 +1,46 @@
+image: gradle:jdk11
+
+include:
+   template: SAST.gitlab-ci.yml
+
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  
+stages:
+  - build
+  - test
+  - package
+
+build:
+  stage: build
+  script: ./gradlew --build-cache assemble
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: push
+    paths:
+      - build
+      - .gradle
+
+test:
+  stage: test
+  script: ./gradlew check
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: pull
+    paths:
+      - build
+      - .gradle
+
+package:
+  stage: package
+  script: ./gradlew bootJar
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: pull
+    paths:
+      - build
+      - .gradle
+  artifacts:
+    paths:
+      - build/libs
+  
